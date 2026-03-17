@@ -1,0 +1,32 @@
+services:
+  warehouse-dev-db:
+    image: "postgres:latest"
+    env_file:
+      - .env.dev
+    ports:
+      - "5432:5432"
+    networks:
+      - warehouse-network
+
+  warehouse-backend:
+    build:
+      dockerfile: Dockerfile.dev
+    environment:
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+      - SPRING_DOCKER_COMPOSE_ENABLED=false
+    env_file:
+      - .env.dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+      - ./root:/root
+    depends_on:
+      - warehouse-dev-db
+    networks:
+      - warehouse-network
+
+networks:
+  warehouse-network:
+    driver: bridge
