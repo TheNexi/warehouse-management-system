@@ -5,19 +5,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import warehouse.management.system.masi.exception.ApiException;
-import warehouse.management.system.masi.model.AuthSession;
 import warehouse.management.system.masi.model.Employee;
 import warehouse.management.system.masi.model.enums.EmployeeRole;
-import warehouse.management.system.masi.repository.AuthSessionRepository;
-
-import java.time.LocalDateTime;
+import warehouse.management.system.masi.repository.EmployeeRepository;
 
 @Service
 @RequiredArgsConstructor
 public class AuthContextService {
 
     private final CookieService cookieService;
-    private final AuthSessionRepository authSessionRepository;
+    private final JwtTokenService jwtTokenService;
+    private final EmployeeRepository employeeRepository;
 
     public Employee requireAuthenticated(HttpServletRequest request) {
         String token = cookieService.getTokenFromCookies(request.getCookies());
@@ -26,9 +24,14 @@ public class AuthContextService {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
 
-        return authSessionRepository.findByTokenAndExpiresAtAfter(token, LocalDateTime.now())
-                .map(AuthSession::getEmployee)
-                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Session expired"));
+        if (!jwtTokenService.isTokenValid(token)) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+        }
+
+        String username = jwtTokenService.getUsername(token);
+
+        return employeeRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "User not found"));
     }
 
     public Employee requireAdministrator(HttpServletRequest request) {
