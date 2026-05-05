@@ -35,3 +35,10 @@ INSERT INTO order_history (id, operation_type, details, created_at, performed_by
 (1, 'STOCK_UPDATE', 'Zaladowano poczatkowy stan magazynu z pliku SQL', NOW(), 'system'),
 (2, 'PRODUCT_CREATE', 'Utworzono poczatkowy katalog produktow z pliku SQL', NOW(), 'system')
 ON CONFLICT (id) DO NOTHING;
+
+SELECT setval(pg_get_serial_sequence('employees', 'id'), COALESCE((SELECT MAX(id) FROM employees), 1));
+SELECT setval(pg_get_serial_sequence('warehouses', 'id'), COALESCE((SELECT MAX(id) FROM warehouses), 1));
+SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 1));
+SELECT setval(pg_get_serial_sequence('deliveries', 'id'), COALESCE((SELECT MAX(id) FROM deliveries), 1));
+SELECT setval(pg_get_serial_sequence('payments', 'id'), COALESCE((SELECT MAX(id) FROM payments), 1));
+SELECT setval(pg_get_serial_sequence('order_history', 'id'), COALESCE((SELECT MAX(id) FROM order_history), 1));
