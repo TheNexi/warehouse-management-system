@@ -4,6 +4,12 @@
 - Java 17+
 - Maven 3.8+
 
+### Create file .env.dev in main directory
+```bash
+POSTGRES_DB=warehouse_db
+POSTGRES_USER=warehouse_user
+POSTGRES_PASSWORD=warehouse_pass
+```
 
 ### Running backend in terminal
 ```bash
@@ -25,3 +31,5 @@ cd frontend
 npm install react-router-dom
 npm run dev
 ```
+
+
