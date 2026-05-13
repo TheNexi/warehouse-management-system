@@ -25,4 +25,10 @@ public class DeliveryController {
                                             HttpServletRequest request) {
         return deliveryService.acceptDelivery(id, request);
     }
+
+    @PostMapping("/deliveries/{id}/reject")
+    public ResponseEntity<?> rejectDelivery(@PathVariable Long id,
+                                            HttpServletRequest request) {
+        return deliveryService.rejectDelivery(id, request);
+    }
 }

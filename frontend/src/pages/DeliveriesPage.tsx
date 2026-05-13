@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { acceptDelivery, getDeliveries } from '../services/api';
+import { acceptDelivery, rejectDelivery, getDeliveries } from '../services/api';
 import { ApiError } from '../services/http';
 import type { Delivery } from '../types/api';
 
@@ -22,10 +22,10 @@ const statusLabels: Record<string, string> = {
 const DeliveriesPage = () => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [acceptingId, setAcceptingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success');
   const [error, setError] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<number | null>(null);
 
   const loadDeliveries = async () => {
     setIsLoading(true);
@@ -50,7 +50,7 @@ const DeliveriesPage = () => {
   }, []);
 
   const handleAccept = async (deliveryId: number) => {
-    setAcceptingId(deliveryId);
+    setProcessingId(deliveryId);
     setFeedback(null);
 
     try {
@@ -66,7 +66,28 @@ const DeliveriesPage = () => {
       }
       setFeedbackType('error');
     } finally {
-      setAcceptingId(null);
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (deliveryId: number) => {
+    setProcessingId(deliveryId);
+    setFeedback(null);
+
+    try {
+      await rejectDelivery(deliveryId);
+      setFeedback(`Dostawa #${deliveryId} została odrzucona.`);
+      setFeedbackType('success');
+      await loadDeliveries();
+    } catch (rejectError) {
+      if (rejectError instanceof ApiError) {
+        setFeedback(rejectError.message);
+      } else {
+        setFeedback('Nie można odrzucić dostawy.');
+      }
+      setFeedbackType('error');
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -74,7 +95,9 @@ const DeliveriesPage = () => {
     <section className="page">
       <header className="page-header">
         <h2 className="page-title">Widok dostaw</h2>
-        <p className="page-subtitle">Przeglądaj przychodzące dostawy i akceptuj oczekujące rekordy.</p>
+        <p className="page-subtitle">
+          Przeglądaj przychodzące dostawy i zarządzaj oczekującymi rekordami.
+        </p>
       </header>
 
       <article className="panel">
@@ -112,14 +135,25 @@ const DeliveriesPage = () => {
                     <td>{delivery.deliveryAddress}</td>
                     <td>
                       {delivery.status === 'PENDING' ? (
-                        <button
-                          className="button"
-                          type="button"
-                          disabled={acceptingId === delivery.id}
-                          onClick={() => handleAccept(delivery.id)}
-                        >
-                          {acceptingId === delivery.id ? 'Akceptowanie...' : 'Akceptuj'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            className="button"
+                            type="button"
+                            disabled={processingId === delivery.id}
+                            onClick={() => handleAccept(delivery.id)}
+                          >
+                            {processingId === delivery.id ? 'Przetwarzanie...' : 'Akceptuj'}
+                          </button>
+
+                          <button
+                            className="button button-danger"
+                            type="button"
+                            disabled={processingId === delivery.id}
+                            onClick={() => handleReject(delivery.id)}
+                          >
+                            Odrzuć
+                          </button>
+                        </div>
                       ) : (
                         <span className="inline-note">Brak akcji</span>
                       )}

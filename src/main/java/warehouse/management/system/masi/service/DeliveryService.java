@@ -63,4 +63,25 @@ public class DeliveryService {
         product.setAvailability(newAvailability);
         productRepository.save(product);
     }
+
+    @Transactional
+    public ResponseEntity<?> rejectDelivery(Long deliveryId, HttpServletRequest request) {
+        Employee employee = authContextService.requireAuthenticated(request);
+        Delivery delivery = getDeliveryById(deliveryId);
+
+        if (delivery.getStatus() != DeliveryStatus.PENDING) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Only pending deliveries can be rejected");
+        }
+
+        delivery.setStatus(DeliveryStatus.REJECTED);
+        deliveryRepository.save(delivery);
+
+        orderHistoryService.record(
+                "DELIVERY_REJECTED",
+                "Rejected delivery " + deliveryId,
+                employee.getUsername()
+        );
+
+        return ResponseEntity.ok(delivery);
+    }
 }

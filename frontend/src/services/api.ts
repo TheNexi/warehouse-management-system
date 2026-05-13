@@ -77,6 +77,12 @@ export const acceptDelivery = (id: number): Promise<Delivery> => {
   });
 };
 
+export const rejectDelivery = (id: number): Promise<Delivery> => {
+  return apiRequest<Delivery>(`/deliveries/${id}/reject`, {
+    method: 'POST',
+  });
+};
+
 export const getEmployees = (): Promise<Employee[]> => {
   return apiRequest<Employee[]>('/employees');
 };
