@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   createEmployee,
   deleteEmployee,
@@ -32,6 +33,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const EmployeesPage = () => {
+  const location = useLocation();
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [form, setForm] = useState<EmployeeFormState>(EMPTY_FORM);
   const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(null);
@@ -61,7 +64,7 @@ const EmployeesPage = () => {
 
   useEffect(() => {
     void loadEmployees();
-  }, []);
+  }, [location.pathname]);
 
   const sortedEmployees = useMemo(() => {
     return [...employees].sort((first, second) => first.id - second.id);
@@ -105,9 +108,7 @@ const EmployeesPage = () => {
     setFeedback(null);
 
     const payload = toPayload();
-    if (!payload) {
-      return;
-    }
+    if (!payload) return;
 
     setIsSubmitting(true);
 
@@ -119,6 +120,7 @@ const EmployeesPage = () => {
         await updateEmployee(editingEmployeeId, payload);
         setFeedback('Dane pracownika zostały pomyślnie zaktualizowane.');
       }
+
       setFeedbackType('success');
       resetForm();
       await loadEmployees();
@@ -148,10 +150,10 @@ const EmployeesPage = () => {
   };
 
   const handleDelete = async (employee: Employee) => {
-    const confirmed = window.confirm(`Usunąć pracownika "${employee.firstName} ${employee.lastName}"?`);
-    if (!confirmed) {
-      return;
-    }
+    const confirmed = window.confirm(
+      `Usunąć pracownika "${employee.firstName} ${employee.lastName}"?`
+    );
+    if (!confirmed) return;
 
     setFeedback(null);
 
@@ -174,13 +176,17 @@ const EmployeesPage = () => {
     <section className="page">
       <header className="page-header">
         <h2 className="page-title">Zarządzanie pracownikami</h2>
-        <p className="page-subtitle">Panel administratora do dodawania, edytowania, usuwania i przeglądania profili pracowników.</p>
+        <p className="page-subtitle">
+          Panel administratora do dodawania, edytowania, usuwania i przeglądania profili pracowników.
+        </p>
       </header>
 
       <div className="panels-two-column">
         <article className="panel">
           <h3 className="panel-title">
-            {editingEmployeeId === null ? 'Dodaj pracownika' : `Edytuj pracownika #${editingEmployeeId}`}
+            {editingEmployeeId === null
+              ? 'Dodaj pracownika'
+              : `Edytuj pracownika #${editingEmployeeId}`}
           </h3>
 
           <form className="stacked-form" onSubmit={handleSubmit}>
@@ -192,6 +198,10 @@ const EmployeesPage = () => {
               className="text-input"
               value={form.firstName}
               onChange={(event) => updateField('firstName', event.target.value)}
+              pattern="^[A-Za-zżźćńółęąśŻŹĆŃÓŁĘĄŚ\s\-]+$"
+              minLength={2}
+              maxLength={50}
+              title="Imię musi zawierać przynajmniej 2 litery i nie może zawierać cyfr."
               required
             />
 
@@ -203,6 +213,10 @@ const EmployeesPage = () => {
               className="text-input"
               value={form.lastName}
               onChange={(event) => updateField('lastName', event.target.value)}
+              pattern="^[A-Za-zżźćńółęąśŻŹĆŃÓŁĘĄŚ\s\-]+$"
+              minLength={2}
+              maxLength={50}
+              title="Nazwisko musi zawierać przynajmniej 2 litery i nie może zawierać cyfr."
               required
             />
 
@@ -214,6 +228,9 @@ const EmployeesPage = () => {
               className="text-input"
               value={form.position}
               onChange={(event) => updateField('position', event.target.value)}
+              minLength={2}
+              maxLength={50}
+              title="Stanowisko musi mieć od 2 do 50 znaków."
               required
             />
 
@@ -239,6 +256,10 @@ const EmployeesPage = () => {
               className="text-input"
               value={form.username}
               onChange={(event) => updateField('username', event.target.value)}
+              pattern="^[A-Za-z0-9_]+$"
+              minLength={3}
+              maxLength={30}
+              title="Nazwa użytkownika od 3 do 30 znaków (litery, cyfry, podkreślenie)."
               required
             />
 
@@ -251,6 +272,9 @@ const EmployeesPage = () => {
               type="password"
               value={form.password}
               onChange={(event) => updateField('password', event.target.value)}
+              minLength={form.password ? 4 : undefined} 
+              maxLength={50}
+              title={editingEmployeeId === null ? "Hasło musi mieć co najmniej 4 znaki." : "Zostaw puste lub wpisz nowe hasło (min. 4 znaki)."}
               required={editingEmployeeId === null}
             />
 
@@ -258,8 +282,13 @@ const EmployeesPage = () => {
               <button className="button" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Zapisywanie...' : editingEmployeeId === null ? 'Utwórz pracownika' : 'Zapisz zmiany'}
               </button>
+
               {editingEmployeeId !== null && (
-                <button className="button button-secondary" type="button" onClick={resetForm}>
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  onClick={resetForm}
+                >
                   Anuluj edycję
                 </button>
               )}
@@ -292,6 +321,7 @@ const EmployeesPage = () => {
                     <th>Akcje</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {sortedEmployees.map((employee) => (
                     <tr key={employee.id}>
@@ -304,10 +334,18 @@ const EmployeesPage = () => {
                       <td>{employee.username}</td>
                       <td>
                         <div className="inline-actions">
-                          <button className="button button-secondary" type="button" onClick={() => handleEdit(employee)}>
+                          <button
+                            className="button button-secondary"
+                            type="button"
+                            onClick={() => handleEdit(employee)}
+                          >
                             Edytuj
                           </button>
-                          <button className="button button-danger" type="button" onClick={() => handleDelete(employee)}>
+                          <button
+                            className="button button-danger"
+                            type="button"
+                            onClick={() => handleDelete(employee)}
+                          >
                             Usuń
                           </button>
                         </div>
@@ -315,6 +353,7 @@ const EmployeesPage = () => {
                     </tr>
                   ))}
                 </tbody>
+
               </table>
             </div>
           )}

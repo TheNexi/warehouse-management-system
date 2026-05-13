@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { getOrderHistory } from '../services/api';
 import { ApiError } from '../services/http';
 import type { OrderHistory } from '../types/api';
@@ -11,6 +11,14 @@ const formatTimestamp = (value: string): string => {
   }
 
   return date.toLocaleString('pl-PL');
+};
+
+const inferCategory = (operationType: string): string => {
+  const op = operationType.toUpperCase();
+  if (op.includes('EMPLOYEE') || op.includes('PAYMENT') || op.includes('REGISTER')) return 'Pracownicy i Wynagrodzenia';
+  if (op.includes('PRODUCT')) return 'Zarządzanie Produktami';
+  if (op.includes('DELIVERY') || op.includes('STOCK')) return 'Magazyn i Dostawy';
+  return 'Inne operacje';
 };
 
 const OrderHistoryPage = () => {
@@ -40,6 +48,18 @@ const OrderHistoryPage = () => {
     void loadRecords();
   }, []);
 
+  const groupedRecords = useMemo(() => {
+    const groups: Record<string, OrderHistory[]> = {};
+    for (const record of records) {
+      const category = inferCategory(record.operationType);
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(record);
+    }
+    return groups;
+  }, [records]);
+
   return (
     <section className="page">
       <header className="page-header">
@@ -51,32 +71,41 @@ const OrderHistoryPage = () => {
         {isLoading && <p className="inline-note">Ładowanie historii...</p>}
         {error && <p className="feedback feedback-error">{error}</p>}
 
-        {!isLoading && !error && (
-          <div className="table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Data i czas</th>
-                  <th>Operacja</th>
-                  <th>Szczegóły</th>
-                  <th>Wykonane przez</th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((record) => (
-                  <tr key={record.id}>
-                    <td>{record.id}</td>
-                    <td>{formatTimestamp(record.createdAt)}</td>
-                    <td>{record.operationType}</td>
-                    <td>{record.details}</td>
-                    <td>{record.performedBy}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {!isLoading && !error && Object.keys(groupedRecords).length === 0 && (
+          <p className="inline-note">Brak historii operacji.</p>
         )}
+
+        {!isLoading && !error && Object.entries(groupedRecords).map(([category, categoryRecords]) => (
+          <div key={category} style={{ marginBottom: '32px' }}>
+            <h3 className="panel-title" style={{ marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+              {category}
+            </h3>
+            <div className="table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Data i czas</th>
+                    <th>Operacja</th>
+                    <th>Szczegóły</th>
+                    <th>Wykonane przez</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categoryRecords.map((record) => (
+                    <tr key={record.id}>
+                      <td>{record.id}</td>
+                      <td>{formatTimestamp(record.createdAt)}</td>
+                      <td>{record.operationType}</td>
+                      <td>{record.details}</td>
+                      <td>{record.performedBy}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
       </article>
     </section>
   );

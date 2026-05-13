@@ -189,6 +189,8 @@ const ProductsPage = () => {
               className="text-input"
               value={form.name}
               onChange={(event) => handleInputChange('name', event.target.value)}
+              minLength={2}
+              maxLength={100}
               required
             />
 
@@ -199,7 +201,8 @@ const ProductsPage = () => {
               id="product-price"
               className="text-input"
               type="number"
-              min={0}
+              min={0.01}
+              max={1000000}
               step="0.01"
               value={form.price}
               onChange={(event) => handleInputChange('price', event.target.value)}
@@ -214,6 +217,10 @@ const ProductsPage = () => {
               className="text-input"
               value={form.category}
               onChange={(event) => handleInputChange('category', event.target.value)}
+              pattern="^[A-Za-zżźćńółęąśŻŹĆŃÓŁĘĄŚ\s\-]+$"
+              minLength={2}
+              maxLength={50}
+              title="Kategoria może zawierać tylko litery, spacje i myślniki."
               required
             />
 
@@ -225,9 +232,10 @@ const ProductsPage = () => {
               className="text-input"
               type="number"
               min={0}
+              max={100000}
               step={1}
               value={form.availability}
-              onChange={(event) => handleInputChange('availability', event.target.value)}
+              onChange={(event) => handleInputChange('availability', event.target.value.replace(/\D/g, ''))}
               required
             />
 
@@ -238,6 +246,7 @@ const ProductsPage = () => {
               id="product-description"
               className="text-area"
               rows={4}
+              maxLength={500}
               value={form.description}
               onChange={(event) => handleInputChange('description', event.target.value)}
               required

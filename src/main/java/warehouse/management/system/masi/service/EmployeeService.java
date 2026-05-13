@@ -88,6 +88,7 @@ public class EmployeeService {
                 .role(request.getRole())
                 .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .active(true)
                 .build();
     }
 

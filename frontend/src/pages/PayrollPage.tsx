@@ -100,10 +100,12 @@ const PayrollPage = () => {
     if (
       Number.isNaN(parsedAmount) ||
       parsedAmount < 0 ||
+      parsedAmount > 1000000 ||
       Number.isNaN(parsedBonus) ||
-      parsedBonus < 0
+      parsedBonus < 0 ||
+      parsedBonus > 1000000
     ) {
-      setFeedback('Kwota i premia muszą być nieujemnymi liczbami.');
+      setFeedback('Kwota i premia muszą być nieujemnymi liczbami i nie przekraczać 1 000 000.');
       setFeedbackType('error');
       return;
     }
@@ -179,9 +181,10 @@ const PayrollPage = () => {
                 className="text-input"
                 type="number"
                 min={0}
+                max={1000000}
                 step="0.01"
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                onChange={(event) => setAmount(event.target.value.replace(/[^0-9.]/g, ''))}
                 required
               />
 
@@ -193,9 +196,10 @@ const PayrollPage = () => {
                 className="text-input"
                 type="number"
                 min={0}
+                max={1000000}
                 step="0.01"
                 value={bonusAmount}
-                onChange={(event) => setBonusAmount(event.target.value)}
+                onChange={(event) => setBonusAmount(event.target.value.replace(/[^0-9.]/g, ''))}
                 required
               />
 

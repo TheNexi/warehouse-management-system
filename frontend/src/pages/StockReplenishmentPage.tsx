@@ -11,6 +11,9 @@ const StockReplenishmentPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [quantity, setQuantity] = useState('');
+  
+  const [recentReplenishments, setRecentReplenishments] = useState<{id: string, productName: string, quantity: number, date: string}[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -88,6 +91,14 @@ const StockReplenishmentPage = () => {
 
       await updateStock({ changeBy: parsedQuantity });
 
+      const newRecord = {
+        id: Math.random().toString(36).substring(7),
+        productName: selectedProduct.name,
+        quantity: parsedQuantity,
+        date: new Date().toLocaleTimeString('pl-PL')
+      };
+      setRecentReplenishments((prev) => [newRecord, ...prev].slice(0, 5)); // Ostatnie 5 akcji
+
       setFeedback(`Zapasy uzupełnione o ${parsedQuantity} szt. dla produktu ${selectedProduct.name}.`);
       setFeedbackType('success');
       setQuantity('');
@@ -113,11 +124,13 @@ const StockReplenishmentPage = () => {
         </p>
       </header>
 
-      <article className="panel">
-        {isLoading && <p className="inline-note">Ładowanie produktów...</p>}
-        {error && <p className="feedback feedback-error">{error}</p>}
+      <div className="panels-two-column">
+        <article className="panel">
+          <h3 className="panel-title">Formularz dodawania zapasów</h3>
+          {isLoading && <p className="inline-note">Ładowanie produktów...</p>}
+          {error && <p className="feedback feedback-error">{error}</p>}
 
-        {!isLoading && !error && (
+          {!isLoading && !error && (
           <form className="stacked-form" onSubmit={handleSubmit}>
             <label className="field-label" htmlFor="replenishment-product">
               Produkt
@@ -149,9 +162,10 @@ const StockReplenishmentPage = () => {
               className="text-input"
               type="number"
               min={1}
+              max={10000}
               step={1}
               value={quantity}
-              onChange={(event) => setQuantity(event.target.value)}
+              onChange={(event) => setQuantity(event.target.value.replace(/\D/g, ''))}
               required
             />
 
@@ -161,12 +175,44 @@ const StockReplenishmentPage = () => {
           </form>
         )}
 
-        {feedback && (
-          <p className={`feedback feedback-${feedbackType}`} style={{ marginTop: '12px' }}>
-            {feedback}
-          </p>
-        )}
-      </article>
+          {feedback && (
+            <p className={`feedback feedback-${feedbackType}`} style={{ marginTop: '12px' }}>
+              {feedback}
+            </p>
+          )}
+        </article>
+
+        <article className="panel">
+          <h3 className="panel-title">Ostatnie uzupełnienia (bieżąca sesja)</h3>
+
+          {recentReplenishments.length === 0 ? (
+            <p className="inline-note">Brak przeprowadzonych operacji...</p>
+          ) : (
+            <div className="table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Czas</th>
+                    <th>Produkt</th>
+                    <th>Zwiększono o</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentReplenishments.map((record) => (
+                    <tr key={record.id}>
+                      <td>{record.date}</td>
+                      <td>{record.productName}</td>
+                      <td style={{ color: 'var(--success)', fontWeight: 'bold' }}>
+                        +{record.quantity} szt.
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </article>
+      </div>
     </section>
   );
 };

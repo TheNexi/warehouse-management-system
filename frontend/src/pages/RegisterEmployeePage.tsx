@@ -85,6 +85,10 @@ const RegisterEmployeePage = () => {
             className="text-input"
             value={form.firstName}
             onChange={(event) => updateField('firstName', event.target.value)}
+            pattern="^[A-Za-zżźćńółęąśŻŹĆŃÓŁĘĄŚ\s\-]+$"
+            minLength={2}
+            maxLength={50}
+            title="Imię musi zawierać przynajmniej 2 litery i nie może zawierać cyfr."
             required
           />
 
@@ -96,6 +100,10 @@ const RegisterEmployeePage = () => {
             className="text-input"
             value={form.lastName}
             onChange={(event) => updateField('lastName', event.target.value)}
+            pattern="^[A-Za-zżźćńółęąśŻŹĆŃÓŁĘĄŚ\s\-]+$"
+            minLength={2}
+            maxLength={50}
+            title="Nazwisko musi zawierać przynajmniej 2 litery i nie może zawierać cyfr."
             required
           />
 
@@ -107,6 +115,9 @@ const RegisterEmployeePage = () => {
             className="text-input"
             value={form.position}
             onChange={(event) => updateField('position', event.target.value)}
+            minLength={2}
+            maxLength={50}
+            title="Stanowisko musi mieć od 2 do 50 znaków."
             required
           />
 
@@ -132,6 +143,10 @@ const RegisterEmployeePage = () => {
             className="text-input"
             value={form.username}
             onChange={(event) => updateField('username', event.target.value)}
+            pattern="^[A-Za-z0-9_]+$"
+            minLength={3}
+            maxLength={30}
+            title="Nazwa użytkownika od 3 do 30 znaków (litery, cyfry, podkreślenie)."
             required
           />
 
@@ -144,6 +159,9 @@ const RegisterEmployeePage = () => {
             type="password"
             value={form.password}
             onChange={(event) => updateField('password', event.target.value)}
+            minLength={4}
+            maxLength={50}
+            title="Hasło musi mieć co najmniej 4 znaki."
             required
           />
 

@@ -165,9 +165,10 @@ const DashboardPage = () => {
                   className="text-input"
                   type="number"
                   min={0}
+                  max={warehouse.capacity} 
                   step={1}
                   value={absoluteStock}
-                  onChange={(event) => setAbsoluteStock(event.target.value)}
+                  onChange={(event) => setAbsoluteStock(event.target.value.replace(/\D/g, ''))}
                   required
                 />
                 <button className="button" type="submit" disabled={isSavingAbsolute}>
@@ -189,8 +190,10 @@ const DashboardPage = () => {
                   className="text-input"
                   type="number"
                   step={1}
+                  min={-warehouse.currentStockLevel} 
+                  max={warehouse.capacity - warehouse.currentStockLevel} 
                   value={changeBy}
-                  onChange={(event) => setChangeBy(event.target.value)}
+                  onChange={(event) => setChangeBy(event.target.value.replace(/[^-0-9]/g, ''))}
                   required
                 />
                 <button className="button" type="submit" disabled={isSavingRelative}>
