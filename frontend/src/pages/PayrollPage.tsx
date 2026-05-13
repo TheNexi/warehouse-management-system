@@ -8,6 +8,8 @@ const formatter = new Intl.NumberFormat('pl-PL', {
   currency: 'PLN',
 });
 
+const STORAGE_KEY = 'recentPayments';
+
 const toDisplayCurrency = (value: number | string): string => {
   const normalized = typeof value === 'number' ? value : Number.parseFloat(value);
 
@@ -23,7 +25,15 @@ const PayrollPage = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [amount, setAmount] = useState('');
   const [bonusAmount, setBonusAmount] = useState('0');
-  const [recentPayments, setRecentPayments] = useState<Payment[]>([]);
+
+  const [recentPayments, setRecentPayments] = useState<Payment[]>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +62,10 @@ const PayrollPage = () => {
     void loadEmployees();
   }, []);
 
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(recentPayments));
+  }, [recentPayments]);
+
   const selectedEmployee = useMemo(() => {
     const parsedId = Number.parseInt(selectedEmployeeId, 10);
     if (!Number.isInteger(parsedId)) {
@@ -63,8 +77,11 @@ const PayrollPage = () => {
 
   const amountNumber = Number.parseFloat(amount || '0');
   const bonusNumber = Number.parseFloat(bonusAmount || '0');
+
   const totalPayment =
-    Number.isNaN(amountNumber) || Number.isNaN(bonusNumber) ? 0 : amountNumber + bonusNumber;
+    Number.isNaN(amountNumber) || Number.isNaN(bonusNumber)
+      ? 0
+      : amountNumber + bonusNumber;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,7 +97,12 @@ const PayrollPage = () => {
       return;
     }
 
-    if (Number.isNaN(parsedAmount) || parsedAmount < 0 || Number.isNaN(parsedBonus) || parsedBonus < 0) {
+    if (
+      Number.isNaN(parsedAmount) ||
+      parsedAmount < 0 ||
+      Number.isNaN(parsedBonus) ||
+      parsedBonus < 0
+    ) {
       setFeedback('Kwota i premia muszą być nieujemnymi liczbami.');
       setFeedbackType('error');
       return;
@@ -95,8 +117,10 @@ const PayrollPage = () => {
       });
 
       setRecentPayments((previous) => [payment, ...previous].slice(0, 10));
+
       setFeedback('Wpis płatności został pomyślnie utworzony.');
       setFeedbackType('success');
+
       setAmount('');
       setBonusAmount('0');
     } catch (submitError) {
@@ -115,7 +139,9 @@ const PayrollPage = () => {
     <section className="page">
       <header className="page-header">
         <h2 className="page-title">Wynagrodzenia / Panel premii</h2>
-        <p className="page-subtitle">Wypłacaj wynagrodzenia i premie dla wybranych pracowników.</p>
+        <p className="page-subtitle">
+          Wypłacaj wynagrodzenia i premie dla wybranych pracowników.
+        </p>
       </header>
 
       <div className="panels-two-column">
@@ -173,7 +199,9 @@ const PayrollPage = () => {
                 required
               />
 
-              <p className="inline-note">Łącznie do wypłaty: {formatter.format(totalPayment)}</p>
+              <p className="inline-note">
+                Łącznie do wypłaty: {formatter.format(totalPayment)}
+              </p>
 
               <button className="button" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Przetwarzanie...' : 'Wypłać'}
@@ -188,7 +216,12 @@ const PayrollPage = () => {
                 {selectedEmployee.firstName} {selectedEmployee.lastName} — {selectedEmployee.position}
               </p>
               <p>
-                Rola: <strong style={{ color: 'var(--text-h)' }}>{selectedEmployee.role === 'ADMINISTRATOR' ? 'Administrator' : 'Magazynier'}</strong>
+                Rola:{' '}
+                <strong style={{ color: 'var(--text-h)' }}>
+                  {selectedEmployee.role === 'ADMINISTRATOR'
+                    ? 'Administrator'
+                    : 'Magazynier'}
+                </strong>
               </p>
             </div>
           )}

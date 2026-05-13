@@ -1,7 +1,7 @@
-INSERT INTO employees (id, first_name, last_name, position, role, username, password_hash) VALUES
-(1, 'System', 'Administrator', 'Administrator systemu', 'ADMINISTRATOR', 'admin', '$argon2id$v=19$m=16384,t=2,p=1$jY7/D4yYsC6W667tu3908A$mTM1YDMnhHfW9BP8gYPJv5MkX7IFFzk62q1wp06s7jE'),
-(2, 'Marek', 'Nowak', 'Magazynier', 'WAREHOUSEMAN', 'magazynier', '$argon2id$v=19$m=16384,t=2,p=1$jY7/D4yYsC6W667tu3908A$mTM1YDMnhHfW9BP8gYPJv5MkX7IFFzk62q1wp06s7jE'),
-(3, 'Jan', 'Kowalski', 'Starszy magazynier', 'WAREHOUSEMAN', 'jan', '$argon2id$v=19$m=16384,t=2,p=1$jY7/D4yYsC6W667tu3908A$mTM1YDMnhHfW9BP8gYPJv5MkX7IFFzk62q1wp06s7jE')
+INSERT INTO employees (id, first_name, last_name, position, role, username, password_hash, active) VALUES
+(1, 'System', 'Administrator', 'Administrator systemu', 'ADMINISTRATOR', 'admin', '$argon2id$v=19$m=16384,t=2,p=1$jY7/D4yYsC6W667tu3908A$mTM1YDMnhHfW9BP8gYPJv5MkX7IFFzk62q1wp06s7jE', true),
+(2, 'Marek', 'Nowak', 'Magazynier', 'WAREHOUSEMAN', 'magazynier', '$argon2id$v=19$m=16384,t=2,p=1$jY7/D4yYsC6W667tu3908A$mTM1YDMnhHfW9BP8gYPJv5MkX7IFFzk62q1wp06s7jE', true),
+(3, 'Jan', 'Kowalski', 'Starszy magazynier', 'WAREHOUSEMAN', 'jan', '$argon2id$v=19$m=16384,t=2,p=1$jY7/D4yYsC6W667tu3908A$mTM1YDMnhHfW9BP8gYPJv5MkX7IFFzk62q1wp06s7jE', true)
 ON CONFLICT (username) DO UPDATE
 SET
 	first_name = EXCLUDED.first_name,

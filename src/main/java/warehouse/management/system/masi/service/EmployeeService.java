@@ -29,7 +29,7 @@ public class EmployeeService {
 
     public ResponseEntity<?> getEmployees(HttpServletRequest request) {
         authContextService.requireAdministrator(request);
-        return ResponseEntity.ok(employeeRepository.findAll());
+        return ResponseEntity.ok(employeeRepository.findAllByActiveTrue());
     }
 
     public ResponseEntity<?> createEmployee(EmployeeRequest request, HttpServletRequest httpRequest) {
@@ -55,10 +55,19 @@ public class EmployeeService {
 
     public ResponseEntity<?> deleteEmployee(Long id, HttpServletRequest request) {
         Employee admin = authContextService.requireAdministrator(request);
+
         Employee employee = getEmployeeById(id);
-        employeeRepository.delete(employee);
-        orderHistoryService.record("EMPLOYEE_DELETE", "Deleted employee " + employee.getUsername(), admin.getUsername());
-        return ResponseEntity.ok(new ApiMessageResponse("Employee deleted"));
+        employee.setActive(false);
+
+        employeeRepository.save(employee);
+
+        orderHistoryService.record(
+                "EMPLOYEE_DEACTIVATE",
+                "Deactivated employee " + employee.getUsername(),
+                admin.getUsername()
+        );
+
+        return ResponseEntity.ok(new ApiMessageResponse("Employee deactivated"));
     }
 
     public ResponseEntity<?> payEmployee(Long id, PaymentRequest request, HttpServletRequest httpRequest) {
